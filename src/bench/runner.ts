@@ -9,8 +9,8 @@ import {
   type GeoJsonFeature,
   type GeoJsonFeatureCollection,
   type MapletResult,
-} from '../index.js';
-import type { RoutingSource } from '../source/routing.js';
+} from 'supercarto';
+import type { RoutingSource } from 'supercarto';
 import {
   buildTasks,
   SYSTEM_PROMPT,

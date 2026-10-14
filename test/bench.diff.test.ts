@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { SuperCarto } from '../src/index.js';
+import { SuperCarto } from 'supercarto';
 import { buildContext, groundTruth } from '../src/bench/runner.js';
 import {
   buildTasks,
@@ -9,7 +9,7 @@ import {
   TASK_AREAS,
 } from '../src/bench/tasks.js';
 import { scoreArchived } from '../src/bench/rescore.js';
-import type { GeoJsonFeatureCollection } from '../src/ingest/geojson.js';
+import type { GeoJsonFeatureCollection } from 'supercarto';
 import type { Exchange } from '../src/bench/archive.js';
 
 /**

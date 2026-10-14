@@ -10,7 +10,7 @@ import {
 import { ArchivingClient, type RunIdentity } from '../src/bench/archiving.js';
 import { rescore, scoreArchived } from '../src/bench/rescore.js';
 import { scoreOmission } from '../src/bench/score.js';
-import type { SpatialGraph } from '../src/index.js';
+import type { SpatialGraph } from 'supercarto';
 import type { ModelClient } from '../src/bench/models.js';
 import type { ModelRequest } from '../src/bench/types.js';
 import type { ScoredTask } from '../src/bench/score.js';

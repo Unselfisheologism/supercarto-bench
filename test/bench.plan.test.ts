@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { planBench, completedCalls } from '../src/bench/cli-run.js';
 import { ResponseArchive } from '../src/bench/archive.js';
 import { runBenchmark } from '../src/bench/runner.js';
-import { SuperCarto } from '../src/index.js';
+import { SuperCarto } from 'supercarto';
 import type { TaskArea } from '../src/bench/tasks.js';
 
 /**

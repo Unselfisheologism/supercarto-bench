@@ -21,7 +21,7 @@ import { OpencodeDriver } from '../src/bench/driver/opencode.js';
 import { buildTasks, FREE_LADDER_AREAS } from '../src/bench/tasks.js';
 import { runMetadata } from '../src/bench/metadata.js';
 import { archiveName, ResponseArchive } from '../src/bench/archive.js';
-import type { GeoJsonFeatureCollection } from '../src/index.js';
+import type { GeoJsonFeatureCollection } from 'supercarto';
 
 const FIXTURE_DIR = 'fixtures/bench';
 
@@ -187,7 +187,7 @@ const results = await runLadder({
     agentic
       ? new OpencodeDriver({
           model: m,
-          mcpServer: { command: [process.execPath, resolve('dist/cli/main.js'), 'mcp'] },
+          mcpServer: { command: [process.execPath, resolve('node_modules/supercarto/dist/cli/main.js'), 'mcp'] },
           // expand_feature is the capability under test. read/grep/glob are
           // tolerated because the subject runs in an empty scratch directory:
           // exploration there cannot reach ground truth, and killing

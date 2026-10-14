@@ -1,5 +1,5 @@
 import type { BenchmarkTask } from './tasks.js';
-import type { SpatialGraph } from '../index.js';
+import type { SpatialGraph } from 'supercarto';
 
 /**
  * Scoring.

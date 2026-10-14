@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { featuresFromDocument, toMaplet } from '../src/index.js';
-import type { GeoJsonFeatureCollection } from '../src/index.js';
+import { featuresFromDocument, toMaplet } from 'supercarto';
+import type { GeoJsonFeatureCollection } from 'supercarto';
 import { buildTasks, TASK_AREAS, TURN_OFFSET_M, SYNTHETIC_AREA } from '../src/bench/tasks.js';
 import { runBenchmark } from '../src/bench/runner.js';
 import {

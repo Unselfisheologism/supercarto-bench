@@ -26,7 +26,7 @@
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { GeoJsonFeatureCollection, GeoJsonFeature } from '../src/index.js';
+import type { GeoJsonFeatureCollection, GeoJsonFeature } from 'supercarto';
 
 /** Open North Pacific. Nothing here, ever. */
 export const SYNTHETIC_CENTER = { lat: 44.0, lon: -150.0 };

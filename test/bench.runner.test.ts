@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { runBenchmark } from '../src/bench/runner.js';
-import { SuperCarto } from '../src/index.js';
+import { SuperCarto } from 'supercarto';
 import type { ModelClient } from '../src/bench/models.js';
 import type { ModelRequest, ModelResponse } from '../src/bench/types.js';
-import type { RoutingSource } from '../src/source/routing.js';
-import type { MapSource, SourceRequest, SourceResult } from '../src/source/types.js';
-import type { GeoJsonFeatureCollection } from '../src/index.js';
+import type { RoutingSource } from 'supercarto';
+import type { MapSource, SourceRequest, SourceResult } from 'supercarto';
+import type { GeoJsonFeatureCollection } from 'supercarto';
 import type { TaskArea } from '../src/bench/tasks.js';
 
 /**

@@ -13,7 +13,7 @@ import {
 } from '../src/bench/score.js';
 import { buildTasks, TASK_AREAS, SYSTEM_PROMPT } from '../src/bench/tasks.js';
 import type { ScoredTask } from '../src/bench/score.js';
-import type { SpatialGraph } from '../src/compile/graph.js';
+import type { SpatialGraph } from 'supercarto';
 
 /**
  * Benchmark scoring and task construction.

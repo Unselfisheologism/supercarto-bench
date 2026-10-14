@@ -14,7 +14,7 @@ import { rescore } from '../src/bench/rescore.js';
 import { failures, median, summarise } from '../src/bench/score.js';
 import type { ScoredTask } from '../src/bench/score.js';
 import { FREE_LADDER_AREAS } from '../src/bench/tasks.js';
-import type { GeoJsonFeatureCollection } from '../src/index.js';
+import type { GeoJsonFeatureCollection } from 'supercarto';
 
 const FIXTURE_DIR = 'fixtures/bench';
 

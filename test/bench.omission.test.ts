@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { scoreOmission } from '../src/bench/score.js';
 import { buildTasks, SYNTHETIC_AREA, OMISSION_QUESTION, TASK_AREAS } from '../src/bench/tasks.js';
-import { toMaplet } from '../src/index.js';
-import type { GeoJsonFeatureCollection } from '../src/index.js';
+import { toMaplet } from 'supercarto';
+import type { GeoJsonFeatureCollection } from 'supercarto';
 
 /**
  * The omission task is the one that tests the protocol instead of the map.

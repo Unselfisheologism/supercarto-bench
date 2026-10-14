@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { SuperCarto } from '../src/index.js';
+import { SuperCarto } from 'supercarto';
 import { groundTruth } from '../src/bench/runner.js';
 import { buildTasks, SYNTHETIC_AREA } from '../src/bench/tasks.js';
-import type { GeoJsonFeatureCollection } from '../src/ingest/geojson.js';
+import type { GeoJsonFeatureCollection } from 'supercarto';
 
 /**
  * Ground truth must be reproducible, or a re-score is not a check on the model.

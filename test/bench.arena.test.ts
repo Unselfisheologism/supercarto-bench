@@ -7,7 +7,7 @@ import { ArchivingClient } from '../src/bench/archiving.js';
 import { ResponseArchive } from '../src/bench/archive.js';
 import { LADDER } from '../src/bench/ladder.js';
 import { runBenchmark } from '../src/bench/runner.js';
-import { SuperCarto } from '../src/index.js';
+import { SuperCarto } from 'supercarto';
 import type { ModelClient } from '../src/bench/models.js';
 import type { ModelRequest } from '../src/bench/types.js';
 

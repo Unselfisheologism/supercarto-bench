@@ -2,7 +2,7 @@
  * Benchmark types shared across the harness.
  */
 
-import type { SpatialGraph } from '../compile/graph.js';
+import type { SpatialGraph } from 'supercarto';
 
 export interface LatLon {
   lat: number;

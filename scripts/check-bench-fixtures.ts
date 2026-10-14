@@ -10,7 +10,7 @@
 
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { toMaplet, type GeoJsonFeatureCollection } from '../src/index.js';
+import { toMaplet, type GeoJsonFeatureCollection } from 'supercarto';
 
 const DIR = 'fixtures/bench';
 

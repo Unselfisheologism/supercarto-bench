@@ -13,10 +13,10 @@ import { fingerprintPrompt, ResponseArchive, type Exchange } from './archive.js'
 import type { ScoredTask } from './score.js';
 import type { GroundTruth } from './types.js';
 import type { RunnerOptions } from './runner.js';
-import { SuperCarto } from '../live.js';
-import { OsrmRouter, type RoutingSource } from '../source/routing.js';
+import { SuperCarto } from 'supercarto';
+import { OsrmRouter, type RoutingSource } from 'supercarto';
 import { groundTruth } from './runner.js';
-import type { GeoJsonFeatureCollection } from '../ingest/geojson.js';
+import type { GeoJsonFeatureCollection } from 'supercarto';
 
 export interface RescoreOptions {
   /** JSONL archive written by the archiving client. */
