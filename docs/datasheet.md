@@ -720,9 +720,9 @@ done; the rest stand, one of them unmeetable.
    `fixtures/bench/ATTRIBUTION.md` (2026-10-13): code and five synthetic
    fixtures Apache-2.0; eight Overpass-derived city fixtures ODbL 1.0 with
    © OpenStreetMap contributors attribution and database share-alike.
-6. ⚠️ **Croissant metadata written (`croissant.json`), identifier not minted.**
-   Minting needs a Zenodo deposit, which needs a human with an account -
-   not doable from here. The file is ready to deposit.
+6. ✅ **Croissant metadata + persistent identifier.** Published 2026-10-14:
+   https://doi.org/10.5281/zenodo.23344283 (record
+   https://zenodo.org/records/23344283). The metadata file points at the DOI.
 7. ✅ **Contamination guards (ABC R.3/R.4).** BIG-bench-style canary GUIDs
    in all 13 fixtures plus unique task ids per instance. Verdict: fixtures
    load identically with canaries present (65 fixture-touching tests green).

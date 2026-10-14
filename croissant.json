@@ -17,7 +17,14 @@
       "name": "Unselfisheologism"
     }
   ],
-  "keywords": ["benchmark", "large language models", "agents", "maps", "geospatial", "context efficiency"],
+  "keywords": [
+    "benchmark",
+    "large language models",
+    "agents",
+    "maps",
+    "geospatial",
+    "context efficiency"
+  ],
   "distribution": [
     {
       "@type": "FileObject",
@@ -47,10 +54,23 @@
       "name": "benchmark-tasks",
       "description": "One row per (task, arm, seed): task id, representation shown, model answer, programmatic verdict. See bench-results/*.report.json.",
       "field": [
-        { "@type": "Field", "name": "taskId", "description": "Area and kind, e.g. synthetic-pacific/omission-awareness." },
-        { "@type": "Field", "name": "representation", "description": "supercarto, geojson, or none." },
-        { "@type": "Field", "name": "correct", "description": "True, false, or null when unscoreable." }
+        {
+          "@type": "Field",
+          "name": "taskId",
+          "description": "Area and kind, e.g. synthetic-pacific/omission-awareness."
+        },
+        {
+          "@type": "Field",
+          "name": "representation",
+          "description": "supercarto, geojson, or none."
+        },
+        {
+          "@type": "Field",
+          "name": "correct",
+          "description": "True, false, or null when unscoreable."
+        }
       ]
     }
-  ]
+  ],
+  "identifier": "https://doi.org/10.5281/zenodo.23344283"
 }
