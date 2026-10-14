@@ -728,7 +728,7 @@ done; the rest stand, one of them unmeetable.
    load identically with canaries present (65 fixture-touching tests green).
 8. ✅ **Changelog and rerun quick-start.** `CHANGELOG.md` and a
    `docs/benchmark.md` reproduction section with the exact commands.
-7. ❌ **Seed control / confidence intervals.** Unmeetable on the free path:
+9. ❌ **Seed control / confidence intervals.** Unmeetable on the free path:
    `opencode run` accepts no seed, so repeats are uncontrolled draws. This is a
    platform limit, not a to-do, and it caps how strongly any number here can be
    stated.

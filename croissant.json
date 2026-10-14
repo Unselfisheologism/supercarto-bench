@@ -6,7 +6,7 @@
   "@type": "Dataset",
   "name": "supercarto-bench",
   "description": "Benchmark fixtures and raw runs for comparing map-data representations for LLM agents (compiled topological graph vs raw GeoJSON vs no map) on accuracy and context-token cost. Fixtures: unmemorizable synthetic micro-areas plus eight Overpass-derived city extracts. See docs/datasheet.md for the full datasheet and docs/benchmark-sop.txt for the methodology checklist it was worked from.",
-  "version": "0.4.8",
+  "version": "0.4.9",
   "license": [
     "https://www.apache.org/licenses/LICENSE-2.0",
     "https://opendatacommons.org/licenses/odbl/1-0/"
@@ -14,7 +14,7 @@
   "creator": [
     {
       "@type": "Person",
-      "name": "Unselfisheologism"
+      "name": "Jeffrin James"
     }
   ],
   "keywords": [
