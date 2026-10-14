@@ -2,10 +2,14 @@
 
 Following Gebru et al., *Datasheets for Datasets* (arXiv:1803.09010).
 
-This describes a benchmark **harness and dataset** that is not yet fit to produce a
-published result. Several sections below say so directly. It is written now because
-the failure modes it records were found the expensive way, and writing them down is
-cheaper than rediscovering them.
+This describes a benchmark **harness and dataset** with published results
+and published limits. Small synthetic runs score 9/9 for the compact graph
+against ~4/9 raw and 0/9 with no map - on two models, three uncontrolled
+repeats each, no error bars, no real cities. Those numbers are real runs,
+not projections, and they are not universal accuracy wins: §7, §11 and §13
+say exactly where they stop meaning anything. The failure modes recorded
+here were found the expensive way, and writing them down is cheaper than
+rediscovering them.
 
 ---
 
@@ -107,8 +111,8 @@ maintainers and anyone choosing how to feed map data to an agent.
 **Not intended, and actively misleading here:**
 
 - **Effect size against a no-map baseline on well-known cities.** See §7.
-- **Any claim about models.** A result on one model is a result about that model, and
-  no panel spanning multiple families has been run.
+- **Any claim about models.** A result on one model is a result about that model.
+  Two free models have been run and agree; that is two data points, not a panel.
 - **Confidence intervals.** See §8.
 
 ## 6. Distribution
