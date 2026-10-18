@@ -1,12 +1,12 @@
 # supercarto bench — leaderboard
 
-Aggregated 2026-10-18T08:21:54.718Z from the archives under `bench-results/`.
+Aggregated 2026-10-18T09:31:05.394Z from the archives under `bench-results/`.
 
 ## scoreC across every run — solved/scorable per arm
 
-- geojson: **14/41**
-- none: **0/44**
-- supercarto: **36/44**
+- geojson: **15/44**
+- none: **0/47**
+- supercarto: **38/47**
 
 ## Per model and arm
 
@@ -14,10 +14,13 @@ Aggregated 2026-10-18T08:21:54.718Z from the archives under `bench-results/`.
 | --- | --- | --- | --- | --- | --- |
 | opencode/step-5-preview-free | supercarto | 19/21 | 90% | 930 | 5 |
 | opencode/muse-spark-1.3-contributor-free | supercarto | 17/23 | 74% | 930 | 6 |
+| opencode/glm-5.3-flash-free | supercarto | 2/3 | 67% | 1043 | 1 |
 | opencode/step-5-preview-free | geojson | 9/21 | 43% | 172674 | 5 |
+| opencode/glm-5.3-flash-free | geojson | 1/3 | 33% | 69610 | 1 |
 | opencode/muse-spark-1.3-contributor-free | geojson | 5/20 | 25% | 172674 | 6 |
 | opencode/muse-spark-1.3-contributor-free | none | 0/24 | 0% | 189 | 6 |
 | opencode/step-5-preview-free | none | 0/20 | 0% | 189 | 5 |
+| opencode/glm-5.3-flash-free | none | 0/3 | 0% | 191 | 1 |
 
 ## How to read it
 

@@ -1,0 +1,151 @@
+{
+  "generatedAt": "2026-10-18T09:30:28.073Z",
+  "models": [
+    "opencode-glm-5.3-flash-free"
+  ],
+  "archives": 1,
+  "rows": 9,
+  "detail": [
+    {
+      "taskId": "sf-cbd/route-feasibility#supercarto@1024",
+      "model": "opencode/glm-5.3-flash-free",
+      "representation": "supercarto",
+      "seed": 0,
+      "correct": true,
+      "scoredBy": "exact",
+      "rationale": "stated 200m (true 200m); direction matches",
+      "error": null
+    },
+    {
+      "taskId": "sf-cbd/route-feasibility#geojson@1024",
+      "model": "opencode/glm-5.3-flash-free",
+      "representation": "geojson",
+      "seed": 0,
+      "correct": true,
+      "scoredBy": "exact",
+      "rationale": "stated 200m (true 200m); direction matches",
+      "error": null
+    },
+    {
+      "taskId": "sf-cbd/route-feasibility#none@1024",
+      "model": "opencode/glm-5.3-flash-free",
+      "representation": "none",
+      "seed": 0,
+      "correct": false,
+      "scoredBy": "exact",
+      "rationale": "refused or said it could not tell",
+      "error": null
+    },
+    {
+      "taskId": "sf-cbd/nearest-poi#supercarto@1024",
+      "model": "opencode/glm-5.3-flash-free",
+      "representation": "supercarto",
+      "seed": 0,
+      "correct": true,
+      "scoredBy": "exact",
+      "rationale": "recall 100% of 3 shown, 2% of 181 in area, 0 not in data",
+      "error": null
+    },
+    {
+      "taskId": "sf-cbd/nearest-poi#geojson@1024",
+      "model": "opencode/glm-5.3-flash-free",
+      "representation": "geojson",
+      "seed": 0,
+      "correct": false,
+      "scoredBy": "exact",
+      "rationale": "recall 67% of 3 shown, 83% of 181 in area, 110 not in data",
+      "error": null
+    },
+    {
+      "taskId": "sf-cbd/nearest-poi#none@1024",
+      "model": "opencode/glm-5.3-flash-free",
+      "representation": "none",
+      "seed": 0,
+      "correct": false,
+      "scoredBy": "exact",
+      "rationale": "refused or said it could not tell",
+      "error": null
+    },
+    {
+      "taskId": "sf-cbd/connectivity#supercarto@1024",
+      "model": "opencode/glm-5.3-flash-free",
+      "representation": "supercarto",
+      "seed": 0,
+      "correct": false,
+      "scoredBy": "exact",
+      "rationale": "1 component(s) in graph",
+      "error": null
+    },
+    {
+      "taskId": "sf-cbd/connectivity#geojson@1024",
+      "model": "opencode/glm-5.3-flash-free",
+      "representation": "geojson",
+      "seed": 0,
+      "correct": false,
+      "scoredBy": "exact",
+      "rationale": "1 component(s) in graph",
+      "error": null
+    },
+    {
+      "taskId": "sf-cbd/connectivity#none@1024",
+      "model": "opencode/glm-5.3-flash-free",
+      "representation": "none",
+      "seed": 0,
+      "correct": false,
+      "scoredBy": "exact",
+      "rationale": "1 component(s) in graph",
+      "error": null
+    }
+  ],
+  "fixtures": {
+    "kuala-lumpur": 183,
+    "oslo": 1112,
+    "reykjavik": 1104,
+    "rural-montana": 1,
+    "sf-cbd": 720,
+    "singapore": 301,
+    "sydney": 1167,
+    "synthetic-diff-a": 3,
+    "synthetic-diff-b": 3,
+    "synthetic-expansion": 5,
+    "synthetic-heat": 3,
+    "synthetic-pacific": 4570,
+    "tokyo-shimbashi": 443
+  },
+  "summary": [
+    {
+      "model": "opencode-glm-5.3-flash-free",
+      "representation": "supercarto",
+      "accuracy": 0.667,
+      "completion": 1,
+      "medianInputTokens": 1043,
+      "totalInputTokens": 3135,
+      "meanWallMs": 0,
+      "accuracySpread": 0,
+      "failures": 0
+    },
+    {
+      "model": "opencode-glm-5.3-flash-free",
+      "representation": "geojson",
+      "accuracy": 0.333,
+      "completion": 1,
+      "medianInputTokens": 69610,
+      "totalInputTokens": 208836,
+      "meanWallMs": 0,
+      "accuracySpread": 0,
+      "failures": 0
+    },
+    {
+      "model": "opencode-glm-5.3-flash-free",
+      "representation": "none",
+      "accuracy": 0,
+      "completion": 1,
+      "medianInputTokens": 191,
+      "totalInputTokens": 579,
+      "meanWallMs": 0,
+      "accuracySpread": 0,
+      "failures": 0
+    }
+  ],
+  "failures": []
+}

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-18T08:21:54.718Z",
+  "generatedAt": "2026-10-18T09:31:05.394Z",
   "entries": [
     {
       "model": "opencode/step-5-preview-free",
@@ -33,6 +33,17 @@
       ]
     },
     {
+      "model": "opencode/glm-5.3-flash-free",
+      "arm": "supercarto",
+      "solved": 2,
+      "rows": 3,
+      "percent": "67%",
+      "medianTokens": 1043,
+      "runs": [
+        "feas-glm53.report.json"
+      ]
+    },
+    {
       "model": "opencode/step-5-preview-free",
       "arm": "geojson",
       "solved": 9,
@@ -45,6 +56,17 @@
         "expansion-step5-containment.report.json",
         "heat-step5.report.json",
         "synthetic-step5.report.json"
+      ]
+    },
+    {
+      "model": "opencode/glm-5.3-flash-free",
+      "arm": "geojson",
+      "solved": 1,
+      "rows": 3,
+      "percent": "33%",
+      "medianTokens": 69610,
+      "runs": [
+        "feas-glm53.report.json"
       ]
     },
     {
@@ -93,12 +115,23 @@
         "heat-step5.report.json",
         "synthetic-step5.report.json"
       ]
+    },
+    {
+      "model": "opencode/glm-5.3-flash-free",
+      "arm": "none",
+      "solved": 0,
+      "rows": 3,
+      "percent": "0%",
+      "medianTokens": 191,
+      "runs": [
+        "feas-glm53.report.json"
+      ]
     }
   ],
   "scorec": {
-    "geojson": "14/41",
-    "none": "0/44",
-    "supercarto": "36/44"
+    "geojson": "15/44",
+    "none": "0/47",
+    "supercarto": "38/47"
   },
   "notes": [
     "solve rate counts scorable rows only; unscored rows (errors, voided refusals) are excluded from numerators and denominators and stay visible in the per-report files.",

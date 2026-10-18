@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-18T08:22:48.266Z",
+  "generatedAt": "2026-10-18T09:31:02.019Z",
   "sources": [
     {
       "file": "bench-results/diff-muse.report.json",
@@ -28,6 +28,10 @@
     {
       "file": "bench-results/expansion-step5-containment.report.json",
       "sha256": "90e9ead0a2d629fb2b0b9a227c0174cd9c00233391f6807c42a96c88410dcaf0"
+    },
+    {
+      "file": "bench-results/feas-glm53.report.json",
+      "sha256": "a01d83a2b7a8438d4445d542bb074392051eb305cae8daf4d21c971175978eca"
     },
     {
       "file": "bench-results/heat-muse-voided.report.json",
@@ -61,6 +65,7 @@
   "aliases": [
     "opencode-muse-spark-1.3-contributor-free",
     "opencode-step-5-preview-free",
+    "opencode-glm-5.3-flash-free",
     "opencode/muse-spark-1.3-contributor-free",
     "opencode-fledge-alpha-free"
   ],
@@ -74,6 +79,11 @@
       "id": "opencode/step-5-preview-free",
       "rows": 62,
       "solved": 28
+    },
+    {
+      "id": "opencode/glm-5.3-flash-free",
+      "rows": 9,
+      "solved": 3
     }
   ],
   "kinds": [
@@ -82,15 +92,15 @@
       "arms": {
         "supercarto": {
           "solved": 6,
-          "total": 6
+          "total": 7
         },
         "geojson": {
           "solved": 5,
-          "total": 6
+          "total": 7
         },
         "none": {
           "solved": 0,
-          "total": 6
+          "total": 7
         }
       }
     },
@@ -149,16 +159,16 @@
       "kind": "nearest-poi",
       "arms": {
         "supercarto": {
-          "solved": 6,
-          "total": 6
+          "solved": 7,
+          "total": 7
         },
         "geojson": {
           "solved": 0,
-          "total": 6
+          "total": 7
         },
         "none": {
           "solved": 0,
-          "total": 6
+          "total": 7
         }
       }
     },
@@ -178,6 +188,23 @@
           "total": 6
         }
       }
+    },
+    {
+      "kind": "route-feasibility",
+      "arms": {
+        "supercarto": {
+          "solved": 1,
+          "total": 1
+        },
+        "geojson": {
+          "solved": 1,
+          "total": 1
+        },
+        "none": {
+          "solved": 0,
+          "total": 1
+        }
+      }
     }
   ],
   "armOrder": [
@@ -186,9 +213,9 @@
     "none"
   ],
   "scorec": {
-    "supercarto": "36/44",
-    "geojson": "14/41",
-    "none": "0/44"
+    "supercarto": "38/47",
+    "geojson": "15/44",
+    "none": "0/47"
   },
   "skipped": 6,
   "verify": "npx tsx scripts/certificate.ts bench-results/*.report.json  # re-derive, no model calls"
