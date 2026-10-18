@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { featuresFromDocument, toMaplet } from 'supercarto';
 import type { GeoJsonFeatureCollection } from 'supercarto';
-import { buildTasks, TASK_AREAS, TURN_OFFSET_M, SYNTHETIC_AREA } from '../src/bench/tasks.js';
-import { runBenchmark } from '../src/bench/runner.js';
+import { buildTasks, TASK_AREAS, TURN_OFFSET_M, SYNTHETIC_AREA, type BenchmarkTask, type TaskArea } from '../src/bench/tasks.js';
+import { groundTruth, runBenchmark } from '../src/bench/runner.js';
+import { SuperCarto } from 'supercarto';
 import {
   connectedComponents,
   distanceCorrect,
@@ -337,22 +338,20 @@ describe('an oracle solver scores 100%', () => {
 describe('ground truth matches the prompt', () => {
   it('states the turn offset once, and the prompt uses it', () => {
     for (const area of TASK_AREAS) {
-      const turns = buildTasks([area]).find((t) => t.kind === 'turns')!;
-      expect(turns.offsetM).toBe(TURN_OFFSET_M);
-      expect(turns.question).toContain(`${TURN_OFFSET_M}m`);
+      const feasibility = buildTasks([area]).find((t) => t.kind === 'feasibility')!;
+      expect(feasibility.offsetM).toBe(TURN_OFFSET_M);
+      expect(feasibility.question).toContain(`${TURN_OFFSET_M}m`);
     }
   });
 
-  it('does not silently fall back to the area radius for routing', () => {
+  it('does not silently fall back to the area radius for the offset', () => {
     // rural-montana has a 2000m radius, so a radius-derived offset would be 10x
     // the offset the prompt names.
     const montana = TASK_AREAS.find((a) => a.id === 'rural-montana')!;
     expect(montana.radiusM).toBe(2000);
-    for (const kind of ['route', 'turns'] as const) {
-      const task = buildTasks([montana]).find((t) => t.kind === kind)!;
-      expect(task.offsetM).toBe(TURN_OFFSET_M);
-      expect(task.offsetM).not.toBe(montana.radiusM);
-    }
+    const task = buildTasks([montana]).find((t) => t.kind === 'feasibility')!;
+    expect(task.offsetM).toBe(TURN_OFFSET_M);
+    expect(task.offsetM).not.toBe(montana.radiusM);
   });
 
   it('the bbox sets the grid the answer is scored on', () => {
@@ -405,6 +404,10 @@ describe('ground truth matches the prompt', () => {
     // OSRM answers `{"code":"Ok","distance":0}` for a point with no road network.
     // Grading against that scored every arm wrong, including the no-map arm that
     // correctly identified open ocean. Route truth must be unusable, not zero.
+    //
+    // The `route` kind is off the ladder now, but the guard stays: the archive
+    // still carries those rows, and rescoring them must keep treating unusable
+    // truth as unscoreable rather than as zero.
     class ZeroRouter {
       readonly name = 'zero';
       async available() {
@@ -415,35 +418,29 @@ describe('ground truth matches the prompt', () => {
       }
     }
 
-    const answered = 'about 400m';
-    const model = {
-      id: 'm',
-      model: 'm',
-      async call() {
-        return { text: answered, inputTokens: 100, outputTokens: 10 };
-      },
-    };
-
-    // A real area, because route tasks are no longer generated for the synthetic
-    // one - there the reference router has nothing to route over, which is the
-    // very condition under test.
     const realArea = TASK_AREAS.find((a) => a.id === 'sf-cbd')!;
-    const report = await runBenchmark({
-      areas: [realArea],
-      only: ['sf-cbd/route-distance'],
-      budgets: [1024],
-      seeds: 1,
-      fixtures: { 'sf-cbd': fixture },
-      models: [model],
-      router: new ZeroRouter() as never,
-    });
+    const task: BenchmarkTask = {
+      id: 'sf-cbd/route-distance',
+      kind: 'route',
+      question: '(archived row; the kind is off the ladder)',
+      center: realArea.center,
+      radiusM: realArea.radiusM,
+      mode: 'walk',
+      groundTruth: 'osrm',
+      offsetM: TURN_OFFSET_M,
+    };
+    const truth = await groundTruth(
+      task,
+      new ZeroRouter() as never,
+      new SuperCarto({ sources: [] }),
+      { 'sf-cbd': fixture },
+      'supercarto',
+      1024,
+    );
 
-    for (const row of report.detail) {
-      // Unscoreable, not "wrong": the truth does not exist, so the row must not
-      // claim the model got it wrong.
-      expect(row.correct).toBeNull();
-      expect(row.scoredBy).toBe('failed');
-    }
+    // Unscoreable, not "wrong": the truth does not exist, so a row must not
+    // claim the model got it wrong.
+    expect(truth.distanceM).toBeUndefined();
   });
 
   it('rejects route truth that is physically impossible', async () => {
@@ -455,14 +452,6 @@ describe('ground truth matches the prompt', () => {
       ['shorter than the straight line', 35],
       ['seven times the straight line', 725],
     ] as const) {
-      const model = {
-        id: 'm',
-        model: 'm',
-        async call() {
-          return { text: 'about 400m', inputTokens: 100, outputTokens: 10 };
-        },
-      };
-
       class WeirdRouter {
         readonly name = 'weird';
         async available() {
@@ -477,20 +466,30 @@ describe('ground truth matches the prompt', () => {
         }
       }
 
-      const report = await runBenchmark({
-        areas: [TASK_AREAS.find((a) => a.id === 'sf-cbd')!],
-        only: ['sf-cbd/route-distance'],
-        budgets: [1024],
-        seeds: 1,
-        fixtures: { 'sf-cbd': fixture },
-        models: [model],
-        router: new WeirdRouter() as never,
-      });
+      const realArea: TaskArea = TASK_AREAS.find((a) => a.id === 'sf-cbd')!;
+      const task: BenchmarkTask = {
+        id: 'sf-cbd/route-distance',
+        kind: 'route',
+        question: '(archived row; the kind is off the ladder)',
+        center: realArea.center,
+        radiusM: realArea.radiusM,
+        mode: 'walk',
+        groundTruth: 'osrm',
+        offsetM: TURN_OFFSET_M,
+      };
+      const truth = await groundTruth(
+        task,
+        new WeirdRouter() as never,
+        new SuperCarto({ sources: [] }),
+        { 'sf-cbd': fixture },
+        'supercarto',
+        1024,
+      );
 
-      for (const row of report.detail) {
-        expect(row.correct, label).toBeNull();
-        expect(row.scoredBy, label).toBe('failed');
-      }
+      // Outside the plausibility band the truth is unavailable rather than
+      // wrong: the row must surface as unscoreable, not grade against a number
+      // nothing can hit.
+      expect(truth.distanceM, label).toBeUndefined();
     }
   });
 

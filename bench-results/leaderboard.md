@@ -1,6 +1,6 @@
 # supercarto bench — leaderboard
 
-Aggregated 2026-10-18T02:35:42.680Z from the archives under `bench-results/`.
+Aggregated 2026-10-18T08:21:54.718Z from the archives under `bench-results/`.
 
 ## scoreC across every run — solved/scorable per arm
 

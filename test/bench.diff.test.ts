@@ -63,9 +63,8 @@ describe('the diff task exists, and only where it is measurable', () => {
     const real = TASK_AREAS.find((a) => a.id === 'sf-cbd')!;
     expect(buildTasks([real]).map((t) => t.kind).sort()).toEqual([
       'connectivity',
+      'feasibility',
       'nearest',
-      'route',
-      'turns',
     ]);
   });
 });

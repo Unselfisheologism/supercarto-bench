@@ -1,6 +1,6 @@
 # supercarto bench — scoreC certificate
 
-Generated 2026-10-18T02:35:35.835Z. Every number below is derived from archived rows in this repo: prompts, answers and token counts stored per exchange. Re-scoring spends no model calls.
+Generated 2026-10-18T08:22:48.266Z. Every number below is derived from archived rows in this repo: prompts, answers and token counts stored per exchange. Re-scoring spends no model calls.
 
 ## Headline — solved/scorable, by task kind and arm
 
@@ -50,5 +50,5 @@ Generated 2026-10-18T02:35:35.835Z. Every number below is derived from archived 
 
 Cite as:
 
-    supercarto-bench scoreC supercarto 36/44 · geojson 14/41 · none 0/44 (2026-10-18T02:35:35.835Z)
+    supercarto-bench scoreC supercarto 36/44 · geojson 14/41 · none 0/44 (2026-10-18T08:22:48.266Z)
 

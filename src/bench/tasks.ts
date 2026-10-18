@@ -6,11 +6,16 @@
  * cheaply, where the same agent given raw GeoJSON does one or the other. That
  * needs tasks with known answers, and this file is where they live.
  *
- * Ground truth comes from OSRM, which supercarto already depends on and which is
- * the reference pedestrian and driving router. That gives three kinds of
- * question that can be scored exactly rather than by a judge:
+ * Ground truth is chosen per task so it can be trusted rather than judged:
+ * source data, the compiled graph the model was shown, the fixture's own
+ * geometry, or - for the feasibility task - the question's own construction.
+ * An OSRM dependency once supplied route truth; the run itself showed the
+ * reference router returns physically impossible distances on foot profiles
+ * and calls them success, so OSRM truth is gone from the ladder and the tool
+ * was demoted to match. Kind families:
  *
- * - routing: distance and duration, known to the metre
+ * - feasibility: straight-line distance and compass bearing, known by
+ *   arithmetic (destination = centre + offset due north)
  * - proximity: which named place is nearest, known from the source data
  * - connectivity: are two places in the same walkable network, known from the
  *   compiled graph itself
@@ -22,7 +27,7 @@
 
 import type { LatLon } from './types.js';
 
-export type TaskKind = 'route' | 'nearest' | 'connectivity' | 'turns' | 'omission' | 'expand' | 'heat' | 'diff';
+export type TaskKind = 'route' | 'nearest' | 'connectivity' | 'turns' | 'omission' | 'expand' | 'heat' | 'diff' | 'feasibility';
 
 export interface BenchmarkTask {
   id: string;
@@ -36,12 +41,12 @@ export interface BenchmarkTask {
   /** Extra context appended to the question, e.g. a destination name. */
   context?: string;
   /**
-   * How far north the route question walks, in metres.
+   * How far north the feasibility question points, in metres.
    *
    * A task property, not the area radius, because the question text and the
-   * routing destination have to describe the same walk. When this was derived
-   * from `area.radiusM` the turn-by-turn prompt asked about 200m while the
-   * ground truth was routed 400m out, so a model answering the question as
+   * ground-truth destination have to describe the same walk. When this was
+   * derived from `area.radiusM` the turn-by-turn prompt asked about 200m while
+   * the ground truth was routed 400m out, so a model answering the question as
    * asked was scored against a walk it was never told about.
    */
   offsetM?: number;
@@ -51,7 +56,7 @@ export interface BenchmarkTask {
    * Recorded rather than assumed, because a score without a stated provenance
    * is a score nobody can audit.
    */
-  groundTruth: 'osrm' | 'source-data' | 'self-consistent' | 'omission-record' | 'fixture-geometry' | 'diff-applied';
+  groundTruth: 'osrm' | 'source-data' | 'self-consistent' | 'omission-record' | 'fixture-geometry' | 'diff-applied' | 'deterministic';
 }
 
 export interface TaskArea {
@@ -158,10 +163,10 @@ export const NAME_ALIAS_TAGS = [
 ] as const;
 
 /**
- * How far north the turn-by-turn question walks.
+ * How far north the feasibility question points.
  *
- * Named, and used both in the prompt text and by the router, so the two cannot
- * drift apart. A single literal in one place is the whole fix.
+ * Named, and used both in the prompt text and by the ground truth, so the two
+ * cannot drift apart. A single literal in one place is the whole fix.
  */
 export const TURN_OFFSET_M = 200;
 
@@ -351,8 +356,13 @@ export function buildTasks(areas: readonly TaskArea[] = TASK_AREAS): BenchmarkTa
        *    as failing.
        *
        * Generating them anyway would produce rows that are unscoreable forever.
-       *    They remain generated for the real areas, which have OSM geometry the
-       *    router recognises.
+       *    The real-area routing tasks are gone too, for a third reason the
+       *    run exposed later: on foot profiles the reference router returns
+       *    physically impossible distances and calls it `Ok`, so archived
+       *    rows had no trustworthy truth to score against. They are replaced
+       *    by the `feasibility` kind, which the demoted route tool in the
+       *    supercarto package actually promises to answer: distance,
+       *    direction, and the instruction to verify on arrival.
        */
       out.push({
         id: `${area.id}/nearest-poi`,
@@ -438,17 +448,35 @@ export function buildTasks(areas: readonly TaskArea[] = TASK_AREAS): BenchmarkTa
       continue;
     }
 
+    /**
+     * Feasibility, not navigation.
+     *
+     * The ladder used to generate `route` and `turns` tasks here, scored
+     * against the reference router. Two real runs showed that truth unusable:
+     * the public demo OSRM answers `Ok` with physically impossible distances
+     * on foot profiles, so a row could fail every arm and the failure prove
+     * nothing. Rather than hide that, the task changed with the tool it
+     * measures: the `route` tool in the supercarto package is demoted to an
+     * explicit feasibility answer - straight-line distance, the compass
+     * direction to head, and an instruction ending in "verify the approach on
+     * arrival" - so the benchmark grades exactly that promise.
+     *
+     * `deterministic` provenance: the destination is by construction a point
+     * due north of the centre at the offset the question states, so distance
+     * and bearing follow from arithmetic. No router, no network, and a truth
+     * nobody can dispute.
+     */
     out.push({
-      id: `${area.id}/route-distance`,
-      kind: 'route',
+      id: `${area.id}/route-feasibility`,
+      kind: 'feasibility',
       question:
-        `Starting from the centre of this area and walking ${area.radiusM}m in the ` +
-        'north direction, roughly how far do you actually travel along streets, ' +
-        'as opposed to in a straight line?',
+        `Someone standing at the centre of this area wants to head for a point ` +
+        `${TURN_OFFSET_M}m due north. Roughly how far away is that point in a ` +
+        'straight line, and in which compass direction do they head?',
       center: area.center,
       radiusM: area.radiusM,
       mode: 'walk',
-      groundTruth: 'osrm',
+      groundTruth: 'deterministic',
       offsetM: TURN_OFFSET_M,
     });
 
@@ -462,20 +490,6 @@ export function buildTasks(areas: readonly TaskArea[] = TASK_AREAS): BenchmarkTa
       radiusM: area.radiusM,
       mode: 'walk',
       groundTruth: 'source-data',
-    });
-
-    out.push({
-      id: `${area.id}/turn-by-turn`,
-      kind: 'turns',
-      question:
-        `If someone is standing at the centre of this area and wants to walk ${TURN_OFFSET_M}m ` +
-        'north along the street network, what street names would they walk on, ' +
-        'and which direction do they face at each turn?',
-      center: area.center,
-      radiusM: area.radiusM,
-      mode: 'walk',
-      groundTruth: 'osrm',
-      offsetM: TURN_OFFSET_M,
     });
 
     out.push({

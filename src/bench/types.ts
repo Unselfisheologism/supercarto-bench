@@ -61,6 +61,15 @@ export interface GroundTruth {
   /** Street names on the route, in order. */
   streets?: string[];
   /**
+   * Initial compass direction, for the `feasibility` task.
+   *
+   * The truth direction is whatever the question's own construction states:
+   * the destination sits due north of the centre, so the bearing needs no
+   * router and cannot be disputed. Normalised to one of the eight compass
+   * words, matching what `firstCompassWord` extracts from answers.
+   */
+  direction?: string;
+  /**
    * The graph the model was shown, for self-consistent connectivity scoring.
    *
    * Carried rather than just a component count because judging connectivity

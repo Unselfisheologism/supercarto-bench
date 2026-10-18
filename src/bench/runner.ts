@@ -28,7 +28,9 @@ import {
   connectedComponents,
   distanceCorrect,
   extractDistanceM,
+  firstCompassWord,
   isRefusal,
+  metresApart,
   polygonAreaM2,
   scoreConnectivity,
   scoreExpansion,
@@ -714,6 +716,20 @@ export async function groundTruth(
   budget: number,
 ): Promise<GroundTruth> {
   try {
+    if (task.kind === 'feasibility') {
+      // The provenance is the question's own construction: the destination is
+      // a point due north of the centre at the offset the prompt states, so
+      // distance and bearing come from arithmetic. No router is consulted -
+      // this is the whole point of the task type. The reference router is
+      // what proved the old `route` rows unfalsifiable: it answered `Ok`
+      // with impossible distances, so nothing scored against it meant
+      // anything.
+      const target = destination(task.center, task.offsetM ?? task.radiusM);
+      return {
+        distanceM: metresApart(task.center, target),
+        direction: 'north',
+      };
+    }
     if (task.kind === 'route' || task.kind === 'turns') {
       // The offset the question names, not the area radius. See `destination`.
       const to = destination(task.center, task.offsetM ?? task.radiusM);
@@ -1058,6 +1074,28 @@ function scoreAnswer(
   }
 
   switch (task.kind) {
+    case 'feasibility': {
+      if (truth.distanceM === undefined || !truth.direction) return { correct: null, by: 'failed' };
+      const stated = extractDistanceM(answer);
+      if (stated === undefined) {
+        return { correct: false, by: 'exact', rationale: 'no distance stated' };
+      }
+      // The distance the tool can compute (straight line) against the distance
+      // the question posits (also straight line, by construction): no tolerance
+      // argument about road networks applies, so the same 15% band as `route`
+      // is generous for a claim the model can verify arithmetically.
+      const distOk = distanceCorrect(stated, truth.distanceM);
+      const claimed = firstCompassWord(answer);
+      const dirOk = claimed === truth.direction;
+      return {
+        correct: distOk && dirOk,
+        by: 'exact',
+        rationale:
+          `stated ${Math.round(stated)}m (true ${Math.round(truth.distanceM)}m); ` +
+          `direction ${dirOk ? 'matches' : claimed === undefined ? 'not stated' : `claims ${claimed}`}`,
+      };
+    }
+
     case 'route': {
       if (truth.distanceM === undefined) return { correct: null, by: 'failed' };
       const stated = extractDistanceM(answer);

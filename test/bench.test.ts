@@ -10,6 +10,7 @@ import {
   median,
   summarise,
   failures,
+  firstCompassWord,
 } from '../src/bench/score.js';
 import { buildTasks, TASK_AREAS, SYSTEM_PROMPT } from '../src/bench/tasks.js';
 import type { ScoredTask } from '../src/bench/score.js';
@@ -323,12 +324,34 @@ describe('failures', () => {
   });
 });
 
+describe('firstCompassWord', () => {
+  it('reads the first committed direction, not later asides', () => {
+    // "head north; the bay is to the east" commits to north. Scoring that
+    // wrong would punish honesty about the surroundings.
+    expect(firstCompassWord('head north; the bay is to the east')).toBe('north');
+    expect(firstCompassWord('roughly 200m, bearing south')).toBe('south');
+    expect(firstCompassWord('about 200m away')).toBeUndefined();
+  });
+
+  it('will not pass a compound bearing off a bare word', () => {
+    // "north-east" contains the substring "north", but it is a different
+    // claim. The alternation matches the long form first, on purpose.
+    expect(firstCompassWord('head north-east for 200m')).toBe('northeast');
+    expect(firstCompassWord('of five compass points, north-east or south-west')).toBe('northeast');
+  });
+
+  it('normalises case, hyphens and second-word compounds', () => {
+    expect(firstCompassWord('Head North East')).toBe('northeast');
+    expect(firstCompassWord('directly NORTH')).toBe('north');
+  });
+});
+
 describe('task construction', () => {
   it('builds several task kinds per area', () => {
     const tasks = buildTasks(TASK_AREAS);
     expect(tasks.length).toBeGreaterThan(TASK_AREAS.length);
     const kinds = new Set(tasks.map((t) => t.kind));
-    expect(kinds.has('route')).toBe(true);
+    expect(kinds.has('feasibility')).toBe(true);
     expect(kinds.has('nearest')).toBe(true);
     expect(kinds.has('connectivity')).toBe(true);
   });
@@ -341,13 +364,15 @@ describe('task construction', () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it('asks the distance question in a way that distinguishes streets from straight lines', () => {
-    // The whole point of the route task: a model answering "400m" from the
-    // radius has not measured anything. The wording has to make the distinction
-    // explicit or the benchmark rewards the wrong behaviour.
-    const route = buildTasks(TASK_AREAS).find((t) => t.kind === 'route');
-    expect(route!.question).toMatch(/along streets/i);
-    expect(route!.question).toMatch(/straight line/i);
+  it('asks the feasibility question so that a street-network detour cannot pass it', () => {
+    // The inverse of the old route question: `route` tried to measure a
+    // distance the reference router could not establish truthfully. The
+    // demoted tool promises the straight line, so the question asks for
+    // exactly that, and the direction too - a model that only says a number
+    // has answered half of it.
+    const task = buildTasks(TASK_AREAS).find((t) => t.kind === 'feasibility');
+    expect(task!.question).toMatch(/straight line/i);
+    expect(task!.question).toMatch(/compass direction/i);
   });
 
   it('warns the model not to invent places', () => {

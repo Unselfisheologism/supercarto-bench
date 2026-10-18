@@ -191,9 +191,12 @@ describe('runBenchmark offline', () => {
     expect(withMap.length).toBeGreaterThan(0);
   });
 
-  it('scores a correct distance as correct', async () => {
-    // Ground truth is 480m from the stub router, so 480m is inside tolerance.
-    const model = new ScriptedModel('m1', 'fake-1', () => 'The route is about 480m.');
+  it('scores a correct feasibility answer as correct', async () => {
+    // Ground truth is the question's own construction: 200m due north, so
+    // "about 200m, heading north" passes both halves of the check. No router
+    // in the loop at all - the stub router is present only because the
+    // arm's tool palette still supports the opt-in engine.
+    const model = new ScriptedModel('m1', 'fake-1', () => 'The point is about 200m away in a straight line, to the north.');
     const report = await runBenchmark({
       areas: [AREA],
       budgets: [1024],
@@ -202,12 +205,15 @@ describe('runBenchmark offline', () => {
       carto: stubCarto(),
       router: new StubRouter(),
     });
-    const route = report.detail.find((d) => d.taskId.includes('route-distance'));
-    expect(route?.correct).toBe(true);
+    const row = report.detail.find((d) => d.taskId.includes('route-feasibility'));
+    expect(row?.correct).toBe(true);
   });
 
-  it('scores a wrong distance as wrong', async () => {
-    const model = new ScriptedModel('m1', 'fake-1', () => 'It is about 4km.');
+  it('scores a wrong feasibility distance or a missing direction as wrong', async () => {
+    // Both halves matter. "About 3km" is the wrong distance even with the
+    // right bearing; "about 200m away" without a direction asserts the easy
+    // half of the answer and stays silent on the part that orients a walker.
+    const model = new ScriptedModel('m1', 'fake-1', () => 'It is about 3km, heading north.');
     const report = await runBenchmark({
       areas: [AREA],
       budgets: [1024],
@@ -216,8 +222,23 @@ describe('runBenchmark offline', () => {
       carto: stubCarto(),
       router: new StubRouter(),
     });
-    const route = report.detail.find((d) => d.taskId.includes('route-distance'));
-    expect(route?.correct).toBe(false);
+    const row = report.detail.find((d) => d.taskId.includes('route-feasibility'));
+    expect(row?.correct).toBe(false);
+    expect(row?.rationale).toMatch(/direction matches/);
+  });
+
+  it('fails a feasibility answer that states a distance but no direction', async () => {
+    const model = new ScriptedModel('m1', 'fake-1', () => 'It is about 200m away in a straight line.');
+    const report = await runBenchmark({
+      areas: [AREA],
+      budgets: [1024],
+      seeds: 1,
+      models: [model],
+      carto: stubCarto(),
+      router: new StubRouter(),
+    });
+    const row = report.detail.find((d) => d.taskId.includes('route-feasibility'));
+    expect(row?.correct).toBe(false);
   });
 
   it('does not count a refusal as correct', async () => {

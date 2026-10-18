@@ -511,13 +511,13 @@ export function parseEvents(stdout: string): RunEvent[] {
  * listed model that cannot be called costs a full ladder of failures.
  */
 export const FREEMODELS = [
-  'opencode/ling-3.1-flash-free',
+  'opencode/deepseek-v4.1-flash-free',
+  'opencode/glm-5.3-flash-free',
   'opencode/longcat-2.5-preview-free',
   'opencode/mimo-v2.6-flash-free',
-  'opencode/muse-spark-1.3-contributor-free',
   'opencode/nemotron-3-ultra-free',
   'opencode/nemotron-3.5-lightning-free',
-  'opencode/step-5-preview-free',
+  'opencode/nemotron-3.5-super-vl-free',
 ] as const;
 
 /**
@@ -540,6 +540,14 @@ export const UNREACHABLE_FREEMODELS: Record<string, string> = {
   // see it was considered. The earlier `fledge` arms in bench-results/ were run
   // while it worked, which is the archive being useful for exactly this reason.
   'opencode/fledge-alpha-free': 'withdrawn from opencode models; provider returns no-route',
+  // Withdrawn from `opencode models` (live list verified 2026-10-18). Each served
+  // requests when benchmarked; the arms in bench-results/ record runs made while
+  // they were listed. Recorded rather than deleted so a reader comparing against
+  // the CLI's list can see they were considered, not forgotten.
+  'opencode/ling-3.1-flash-free': 'withdrawn from opencode models (verified 2026-10-18)',
+  'opencode/muse-spark-1.3-contributor-free': 'withdrawn from opencode models (verified 2026-10-18)',
+  'opencode/step-5-preview-free': 'withdrawn from opencode models (verified 2026-10-18)',
+  'opencode/cat-jam-free': 'withdrawn from opencode models (verified 2026-10-18)',
 };
 
 /**
@@ -560,4 +568,8 @@ export const EXCLUDED_FREEMODELS: Record<string, string> = {
   // (probe call returned "ok"), but transparently a codename, so the same
   // policy applies. Recorded the day it appeared so the review date is visible.
   'opencode/cat-jam-free': 'codename, listed from 2026-10-13; real model identity unknown',
+  // Seen in the 2026-10-18 free list. Not probed: the name is a codename with
+  // no public model identity behind it, which is the exclusion criterion
+  // itself, so a probe call would not change the answer.
+  'opencode/beam-free': 'codename; real model identity unknown, withdrawable without notice',
 };

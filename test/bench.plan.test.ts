@@ -62,9 +62,10 @@ class StubRouter {
 describe('bench plan', () => {
   it('reports the true size rather than the cap', () => {
     const p = planBench(['--budget', '30']);
-    // 8 areas x 4 task kinds = 32 tasks, three arms each, one seed.
-    expect(p.tasks.length).toBe(32);
-    expect(p.totalCalls).toBe(96);
+    // 8 areas x 3 task kinds = 24 tasks, three arms each, one seed.
+    // (Route and turns became one feasibility task in the demotion.)
+    expect(p.tasks.length).toBe(24);
+    expect(p.totalCalls).toBe(72);
     expect(p.budget).toBe(30);
     // The distinction matters: the total is what a full ladder costs, and the
     // budget is what one invocation may spend.
@@ -84,12 +85,12 @@ describe('bench plan', () => {
 
   it('filters to one area when asked', () => {
     const p = planBench(['--only', 'sf-cbd', '--dry']);
-    expect(p.tasks.length).toBe(4);
+    expect(p.tasks.length).toBe(3);
     expect(p.tasks.every((t) => t.startsWith('sf-cbd/'))).toBe(true);
   });
 
   it('scales total calls with seeds', () => {
-    expect(planBench(['--seeds', '2', '--dry']).totalCalls).toBe(192);
+    expect(planBench(['--seeds', '2', '--dry']).totalCalls).toBe(144);
   });
 });
 

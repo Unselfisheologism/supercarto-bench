@@ -18,8 +18,13 @@ npm package (see `package.json`), not local source.
 | heat (peak value + location) | 6/6 | 0/6 | 0/6 |
 | diff (previous map + changes) | 5/5 answered | 4/4 | 0/6 |
 
-`route` / `turns` are unmeasurable: the reference router returns impossible
-distances. Saying so is part of the result.
+`route` was demoted, not hidden. The reference router returns impossible
+distances and calls them success, so turn-by-turn rows had no trustworthy
+truth; the `route` tool in the package is now an explicit **feasibility**
+answer (straight-line distance, compass direction, then verify the approach
+on arrival), and the ladder measures exactly that promise with a
+`feasibility` task whose ground truth is the question's own geometry -
+no router in the loop at all.
 
 The living aggregation lives in [`bench-results/certificate.md`](bench-results/certificate.md)
 (scoreC per arm, with provenance and a no-model-calls verify command) and

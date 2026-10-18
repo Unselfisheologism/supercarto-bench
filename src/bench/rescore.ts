@@ -8,7 +8,7 @@
  */
 
 import { buildTasks, TASK_AREAS, type TaskArea } from './tasks.js';
-import { failures, scoreConnectivity, scoreExpansion, scoreHeat, scoreNames, scoreOmission, median, summarise, extractDistanceM, distanceCorrect, isRefusal } from './score.js';
+import { failures, scoreConnectivity, scoreExpansion, scoreHeat, scoreNames, scoreOmission, median, summarise, extractDistanceM, distanceCorrect, isRefusal, firstCompassWord } from './score.js';
 import { fingerprintPrompt, ResponseArchive, type Exchange } from './archive.js';
 import type { ScoredTask } from './score.js';
 import type { GroundTruth } from './types.js';
@@ -179,6 +179,22 @@ function scoreAgainst(
   }
 
   switch (kind) {
+    case 'feasibility': {
+      // Mirrors the runner's case exactly. Two implementations of one rule is
+      // exactly how the connectivity scorer drifted once before, so the copy
+      // is asserted equivalent by test (bench.frozen-truth).
+      if (truth.distanceM === undefined || !truth.direction) return { correct: null, scoredBy: 'failed' };
+      const stated = extractDistanceM(answer);
+      if (stated === undefined) return { correct: false, scoredBy: 'exact', rationale: 'no distance stated' };
+      const claimed = firstCompassWord(answer);
+      return {
+        correct: distanceCorrect(stated, truth.distanceM) && claimed === truth.direction,
+        scoredBy: 'exact',
+        rationale:
+          `stated ${Math.round(stated)}m (true ${Math.round(truth.distanceM)}m); ` +
+          `direction ${claimed === truth.direction ? 'matches' : claimed === undefined ? 'not stated' : `claims ${claimed}`}`,
+      };
+    }
     case 'route': {
       if (truth.distanceM === undefined) return { correct: null, scoredBy: 'failed' };
       const stated = extractDistanceM(answer);

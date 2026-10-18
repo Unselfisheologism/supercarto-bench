@@ -230,6 +230,27 @@ function isAbbrev(known: string, claimed: Set<string>): boolean {
 }
 
 /**
+ * The first compass word an answer commits to.
+ *
+ * The feasibility question asks which direction the person heads, so the first
+ * compass word the answer produces is its claim - "head north, the bay is to
+ * the east" is a north claim with an east aside, and scoring it wrong would
+ * penalise honesty about the surroundings. Longer forms are matched before
+ * bare "north": "north-east" is a different claim from "north", and the
+ * answer must not pass by matching the prefix of a different direction.
+ *
+ * Returns the normalised single-word form (`north-east` -> `northeast`), or
+ * `undefined` when the answer commits to nothing.
+ */
+export function firstCompassWord(text: string): string | undefined {
+  const re =
+    /\b(north[- ]east|north[- ]west|south[- ]east|south[- ]west|northeast|northwest|southeast|southwest|north|south|east|west)\b/gi;
+  const m = re.exec(text);
+  if (!m) return undefined;
+  return m[1]!.toLowerCase().replace(/[- ]/g, '');
+}
+
+/**
  * Words that mark a candidate as naming a place.
  *
  * Quoted strings are unambiguous. Bare Title Case is not: a sentence-initial

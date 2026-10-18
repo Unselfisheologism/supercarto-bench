@@ -51,9 +51,12 @@ describe('the omission task exists, and only where it can be measured', () => {
   });
 
   it('still generates every kind for a real area', () => {
+    // `route` and `turns` are gone: the reference router's impossible foot
+    // distances made those rows unscoreable anywhere. `feasibility` replaces
+    // them, with truth no router is needed to establish.
     const real = TASK_AREAS.find((a) => a.id === 'sf-cbd')!;
     const kinds = buildTasks([real]).map((t) => t.kind);
-    expect(kinds.sort()).toEqual(['connectivity', 'nearest', 'route', 'turns']);
+    expect(kinds.sort()).toEqual(['connectivity', 'feasibility', 'nearest']);
   });
 
   it('asks the question the omission record answers', () => {
