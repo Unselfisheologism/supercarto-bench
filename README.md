@@ -21,6 +21,12 @@ npm package (see `package.json`), not local source.
 `route` / `turns` are unmeasurable: the reference router returns impossible
 distances. Saying so is part of the result.
 
+The living aggregation lives in [`bench-results/certificate.md`](bench-results/certificate.md)
+(scoreC per arm, with provenance and a no-model-calls verify command) and
+[`bench-results/leaderboard.md`](bench-results/leaderboard.md) (per model and
+arm). Regenerate both from the committed archives with `npm run certificate`
+and `npm run leaderboard`.
+
 ## Run it
 
 ```bash
