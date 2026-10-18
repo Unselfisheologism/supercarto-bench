@@ -32,7 +32,8 @@ export interface Exchange {
   /** `taskId#representation@budget#seed`, matching a ScoredTask. */
   key: string;
   taskId: string;
-  representation: 'supercarto' | 'geojson' | 'none';
+  /** Any arm id, built-in or adapter-registered. */
+  representation: string;
   budget: number;
   seed: number;
   /** Model alias exactly as the provider displayed it. */

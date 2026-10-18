@@ -1,16 +1,18 @@
 {
   "name": "supercarto-bench",
-  "version": "0.4.9",
+  "version": "0.4.11",
   "description": "Benchmark fixtures, harness and raw runs comparing map-data representations for LLM agents",
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:unit": "vitest run --exclude test/live.test.ts"
+    "test:unit": "vitest run --exclude test/live.test.ts",
+    "certificate": "tsx scripts/certificate.ts bench-results/*.report.json",
+    "leaderboard": "tsx scripts/leaderboard.ts"
   },
   "dependencies": {
-    "supercarto": "^0.4.9"
+    "supercarto": "^0.4.11"
   },
   "devDependencies": {
     "@types/node": "^22.19.1",

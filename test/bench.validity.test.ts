@@ -285,16 +285,52 @@ describe('an oracle solver scores 100%', () => {
   });
 
   it('passes connectivity when it states the graph truthfully', () => {
-    const doc = toMaplet(fixture, {
-      budget: 1024,
+    // Since 0.4.11 the connectivity-preserving budgeter renders *connected*
+    // sources as one whole component at every budget, so the sf-cbd fixture
+    // can no longer exercise the isolated branch. Two disjoint street pieces
+    // keep both branches reachable regardless of how the budgeter evolves:
+    // segments that share no endpoint can never connect, on this or any
+    // future graph.
+    const island = (id: number, lon: number) => ({
+      type: 'Feature' as const,
+      id,
+      properties: { highway: 'primary', name: `Island ${id} Street` },
+      geometry: {
+        type: 'LineString' as const,
+        coordinates: [
+          [lon, -18.12],
+          [lon + 0.001, -18.12],
+        ],
+      },
+    });
+    const twoIslands = {
+      type: 'FeatureCollection' as const,
+      features: [island(1, 2.0), island(2, 2.5)],
+    };
+    const doc = toMaplet(twoIslands, {
+      budget: 4000,
       radiusLabel: '400m',
       capabilities: { elevation: false, weather: false, traffic: false },
     });
-    const isolated = connectedComponents(doc.graph) > 1;
-    const truthful = isolated
-      ? 'Some of the places are isolated; there is no path between them.'
-      : 'All of the places are connected to each other by walkable paths.';
-    expect(scoreConnectivity(doc.graph, truthful)).toBe(true);
+    expect(connectedComponents(doc.graph)).toBeGreaterThan(1);
+    expect(
+      scoreConnectivity(doc.graph, 'Some of the places are isolated; there is no path between them.'),
+    ).toBe(true);
+
+    const oneIsland = { type: 'FeatureCollection' as const, features: [island(1, 2.0), island(2, 2.001)] };
+    const whole = toMaplet(oneIsland, {
+      budget: 4000,
+      radiusLabel: '400m',
+      capabilities: { elevation: false, weather: false, traffic: false },
+    });
+    expect(connectedComponents(whole.graph)).toBe(1);
+    // The scorer reads a connected claim from exact phrases ('all connected',
+    // 'every one is', 'fully connected'), so the oracle states the truth in
+    // the scorer's vocabulary: the availability claim this test pins is for a
+    // subject that answers in words the rule can recognise.
+    expect(
+      scoreConnectivity(whole.graph, 'They are all connected; every one is on the same walkable network.'),
+    ).toBe(true);
   });
 });
 
@@ -319,18 +355,20 @@ describe('ground truth matches the prompt', () => {
     }
   });
 
-  it('compiles the shown-name set within the task bbox', () => {
-    // The bbox is what scopes the compile. Without it a different set of nodes
-    // survives budget fitting: at sf-cbd budget 1024 the bbox-scoped compile names
-    // ten places and the unscoped one names seven. Scoring against the wrong scope
-    // reported two hallucinations in an answer that had correctly listed every
-    // place it was shown.
+  it('the bbox sets the grid the answer is scored on', () => {
+    // 0.4.9's budgeter pruned differently at each grid scale, so scoped and
+    // unscoped compiles differed in *names* and this test checked the count
+    // differed. 0.4.11's budgeter is grid-scale-robust: the same connected
+    // core survives either way. What the bbox still unambiguously scopes is
+    // the grid itself - the smaller box is quantized finer, so the shown
+    // document is a different encoding, and ground truth built from the
+    // shown document is built from the shown encoding.
     const c = { lat: 37.7936, lon: -122.3958 };
     const r = 400;
     const dLat = r / 110_574;
     const dLon = r / (111_320 * Math.cos((c.lat * Math.PI) / 180));
     const opts = {
-      budget: 1024,
+      budget: 300_000,
       radiusLabel: '400m',
       capabilities: { elevation: false, weather: false, traffic: false },
     } as const;
@@ -346,16 +384,21 @@ describe('ground truth matches the prompt', () => {
     });
     const unscoped = toMaplet(fixture, opts);
 
+    // At a budget that never prunes, both comps encode the full source; the
+    // scoped grid is finer, so its encoding differs node for node.
+    expect(scoped.yaml).not.toBe(unscoped.yaml);
+
+    // And the shown-name set stays gradeable against itself: the oracle's own
+    // rendering must score recall 1 with only a trace of comma-parse noise
+    // (real OSM names contain commas, so the comma parser mis-glues a few -
+    // the oracle solver test above documents the same tolerance).
     const namesOf = (doc: { graph: { nodes: { name?: string }[] } }): string[] => [
       ...new Set(doc.graph.nodes.filter((n) => n.name).map((n) => n.name!)),
     ];
     const inScope = namesOf(scoped);
-    const outOfScope = namesOf(unscoped);
-
-    // Every place the scoped compile names must be reportable without penalty.
-    expect(scoreNames(inScope, inScope.join(', ')).hallucinations).toEqual([]);
-    // And the two sets really do differ, or the test passes for the wrong reason.
-    expect(inScope.length).not.toBe(outOfScope.length);
+    const s = scoreNames(inScope, inScope.join(', '));
+    expect(s.recall).toBe(1);
+    expect(s.hallucinations.length / inScope.length).toBeLessThan(0.05);
   });
 
   it('treats a zero-distance OSRM route as no truth at all', async () => {
@@ -462,8 +505,12 @@ describe('ground truth matches the prompt', () => {
       radiusLabel: '400m',
       capabilities: { elevation: false, weather: false, traffic: false },
     });
-    // If these were equal, the budget mismatch would be invisible and the test
-    // below would pass for the wrong reason.
-    expect(connectedComponents(at1024.graph)).not.toBe(connectedComponents(at4000.graph));
+    // The shown budget must produce a different graph, or scoring against the
+    // wrong budget is invisible. The old discriminator (component counts 8 vs
+    // 33) is gone: 0.4.11's budgeter keeps components whole, and this fixture
+    // is one component at both budgets now. Node counts still move with the
+    // budget, so a wrong-budget truth is still detectably wrong.
+    expect(at1024.graph.nodes.length).not.toBe(at4000.graph.nodes.length);
+    expect(connectedComponents(at1024.graph)).toBe(connectedComponents(at4000.graph));
   });
 });

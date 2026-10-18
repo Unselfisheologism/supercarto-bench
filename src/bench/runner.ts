@@ -9,8 +9,11 @@ import {
   type GeoJsonFeature,
   type GeoJsonFeatureCollection,
   type MapletResult,
+  type ScrDocument,
 } from 'supercarto';
 import type { RoutingSource } from 'supercarto';
+import type { AdapterArm, AdapterArmResult, AdapterPrepareInput } from './adapter.js';
+import { armsFor, BUILTIN_REPS } from './adapter.js';
 import {
   buildTasks,
   SYSTEM_PROMPT,
@@ -114,6 +117,26 @@ export interface RunnerOptions {
    * sets this is choosing how much parallel pressure to put on an undocumented
    * limit.
    */
+  /**
+   * Whether adapters get the budget sweep or one pass.
+   *
+   * A rival tool does its own fitting, so its arm may want the same 3-budget
+   * sweep the supercarto arm gets for the crossover math. Default false: one
+   * pass at the largest budget keeps a first adapter run cheap and puts it on
+   * the leaderboard. Live runs with fixtures absent pay a fetch per budget per
+   * task, so someone paying Overpass per call should opt in deliberately.
+   */
+  sweepAdapters?: boolean;
+  /**
+   * Adapter arms: rival representations that run on the same tasks, models,
+   * prompts, archiving and scoring as the built-ins.
+   *
+   * Registered arm ids join the representation set everywhere: the report
+   * summaries, the token-cost table and the archive rows. An adapter never
+   * receives supercarto's compiled text; see `src/bench/adapter.ts` for the
+   * contract.
+   */
+  adapters?: readonly AdapterArm[];
   concurrency?: number;
 }
 
@@ -177,9 +200,25 @@ export async function runBenchmark(opts: RunnerOptions = {}): Promise<RunReport>
         : 'no areas supplied, so there are no tasks to run',
     );
   }
+  for (const arm of opts.adapters ?? []) {
+    if (BUILTIN_REPS.includes(arm.name)) {
+      // An adapter named like a built-in would replace the honest baseline in
+      // the summary tables without changing any score row: the worst kind of
+      // rig. Rejected here, at run start, where it cannot half-introduce.
+      throw new Error(`adapter arm name ${arm.name} is a built-in arm id; choose a distinct name`);
+    }
+  }
   const detail: ScoredTask[] = [];
   const log = opts.onProgress ?? (() => {});
 
+  // Adapter arms get the compiled document at each budget through this cache,
+  // so a rival tool never pays a second fetch for data the run already
+  // materialised. Keyed doc|<task>|<budget>: exactly one compile per budget
+  // sweep row.
+  const docCache = new Map<
+    string,
+    { features?: GeoJsonFeatureCollection; doc?: ScrDocument; prevFeatures?: GeoJsonFeatureCollection; prevDoc?: ScrDocument }
+  >();
   // Overridable so a test can supply a fixture-backed client. Hardcoding these
   // made every run a live network call.
   const carto = opts.carto ?? new SuperCarto();
@@ -188,21 +227,24 @@ export async function runBenchmark(opts: RunnerOptions = {}): Promise<RunReport>
   // Context sizes are collected per representation so the report can state the
   // cost side by side. This is the number that makes the accuracy numbers mean
   // something: being right with 40x the context is a different result.
-  const contextSizes: Record<Representation, number[]> = {
-    supercarto: [],
-    geojson: [],
-    none: [],
-  };
+  const arms = armsFor(opts.adapters ?? []);
+  const adapterByName = new Map((opts.adapters ?? []).map((a) => [a.name, a]));
+  const contextSizes: Record<string, number[]> = {};
+  for (const rep of arms) contextSizes[rep] = [];
 
   for (const task of tasks) {
-    for (const representation of ['supercarto', 'geojson', 'none'] as Representation[]) {
-      const budgetsToUse = representation === 'supercarto' ? budgets : [budgets[budgets.length - 1]!];
+    for (const representation of arms) {
+      // The supercarto arm sweeps the budgets: its budget fitting is the claim
+      // under test. Adapter arms sweep too when asked for, so a rival tool gets
+      // the same crossover rows; geojson and none are constant-context arms,
+      // so they run once at the largest budget.
+      const sweepAll = representation === 'supercarto' || (opts.sweepAdapters === true && adapterByName.has(representation));
+      const budgetsToUse = sweepAll ? budgets : [budgets[budgets.length - 1]!];
 
       for (const budget of budgetsToUse) {
         const context = await buildContext(task, representation, budget, carto, log, opts.contextCache,
-      opts.fixtures,
-    );
-        contextSizes[representation].push(estimateTokens(context.text));
+      opts.fixtures, opts.adapters, docCache);
+        contextSizes[representation]!.push(estimateTokens(context.text));
 
         const truth = await groundTruth(task, router, carto, opts.fixtures, representation, budget);
 
@@ -264,19 +306,19 @@ export async function runBenchmark(opts: RunnerOptions = {}): Promise<RunReport>
   // field alone would merge every budget into one row and hide the crossover
   // point, which is the most interesting number the benchmark produces.
   const summaries = models.flatMap((model) =>
-    (['supercarto', 'geojson', 'none'] as Representation[]).flatMap((rep) => {
+    arms.flatMap((rep) => {
       const rows = detail.filter((t) => t.model === model.id && t.representation === rep);
       if (rows.length === 0) return [];
       return [summarise(rows, rep, model.id)];
     }),
   );
 
-  const tokenCost: RunReport['tokenCost'] = (['supercarto', 'geojson', 'none'] as Representation[]).map(
+  const tokenCost: RunReport['tokenCost'] = arms.map(
     (rep) => {
-      const sizes = contextSizes[rep].slice().sort((a, b) => a - b);
+      const sizes = contextSizes[rep]!.slice().sort((a, b) => a - b);
       const mid = sizes[sizes.length >> 1] ?? 0;
-      const base = contextSizes.supercarto.slice().sort((a, b) => a - b)[
-        contextSizes.supercarto.length >> 1
+      const base = contextSizes.supercarto!.slice().sort((a, b) => a - b)[
+        contextSizes.supercarto!.length >> 1
       ] ?? 0;
       return {
         representation: rep,
@@ -416,6 +458,11 @@ export async function buildContext(
   log: (m: string) => void,
   cache?: Map<string, { text: string }>,
   fixtures?: Record<string, GeoJsonFeatureCollection>,
+  adapters?: readonly AdapterArm[],
+  docCache?: Map<
+    string,
+    { features?: GeoJsonFeatureCollection; doc?: ScrDocument; prevFeatures?: GeoJsonFeatureCollection; prevDoc?: ScrDocument }
+  >,
 ): Promise<{ text: string }> {
   const area = task.center;
 
@@ -426,6 +473,9 @@ export async function buildContext(
         'No map data has been provided.',
     };
   }
+
+  const adapter = adapters?.find((a) => a.name === representation);
+  if (adapter) return adapterContext(task, adapter, budget, carto, log, cache, fixtures, docCache);
 
   const cacheKey = `${task.id}|${representation}|${budget}`;
   const hit = cache?.get(cacheKey);
@@ -534,6 +584,115 @@ ${diff}
 
   // Stored only on success. A failed fetch left behind by a throw would make
   // every later model silently reuse a half-built prompt as though it were data.
+  cache?.set(cacheKey, built);
+  return built;
+}
+
+/**
+ * Assemble what an adapter arm sees.
+ *
+ * Gets the same *inputs* the reference implementation gets - raw features and
+ * the compiled wire document - and never supercarto's rendered YAML or the
+ * geojson arm's serialisation: a rival that is only asked to re-format the
+ * reference's output is a summary contest, not a representation contest.
+ */
+async function adapterInputFor(
+  task: BenchmarkTask,
+  budget: number,
+  carto: SuperCarto,
+  log: (m: string) => void,
+  fixtures?: Record<string, GeoJsonFeatureCollection>,
+  docCache?: Map<
+    string,
+    { features?: GeoJsonFeatureCollection; doc?: ScrDocument; prevFeatures?: GeoJsonFeatureCollection; prevDoc?: ScrDocument }
+  >,
+): Promise<AdapterPrepareInput> {
+  const key = `doc|${task.id}|${budget}`;
+  const hit = docCache?.get(key);
+  if (hit) return { task, budget, ...hit };
+
+  const entry: {
+    features?: GeoJsonFeatureCollection;
+    doc?: ScrDocument;
+    prevFeatures?: GeoJsonFeatureCollection;
+    prevDoc?: ScrDocument;
+  } = {};
+
+  if (task.kind === 'diff') {
+    // Same snapshot pair the built-in diff arm runs on, compiled once. Two
+    // compiles rather than two fetches: the pair is fixture-only today, and
+    // the envelope must match, or the grid diff is noise.
+    const prev = fixtures?.[areaIdOf(task) + '-a'];
+    const curr = fixtures?.[areaIdOf(task) + '-b'];
+    if (prev && curr) {
+      const docA = compileFixture(prev, task, budget);
+      const docB = compileFixture(curr, task, budget);
+      entry.features = curr;
+      entry.doc = docB.doc;
+      entry.prevFeatures = prev;
+      entry.prevDoc = docA.doc;
+    }
+  } else {
+    const fixture = fixtures?.[areaIdOf(task)];
+    if (fixture) {
+      // Compiled through the same path as the supercarto arm, so an adapter is
+      // not handed better or worse data than the reference got.
+      entry.features = fixture;
+      entry.doc = compileFixture(fixture, task, budget).doc;
+    } else {
+      log(`fetching ${task.id} for the adapter arms`);
+      const result = await carto.maplet({
+        lat: task.center.lat,
+        lon: task.center.lon,
+        radiusM: task.radiusM,
+        budget,
+      });
+      entry.features = { type: 'FeatureCollection', features: featuresFromDocument(result.doc) };
+      entry.doc = result.doc;
+    }
+  }
+
+  docCache?.set(key, entry);
+  return { task, budget, ...entry };
+}
+
+async function adapterContext(
+  task: BenchmarkTask,
+  arm: AdapterArm,
+  budget: number,
+  carto: SuperCarto,
+  log: (m: string) => void,
+  cache?: Map<string, { text: string }>,
+  fixtures?: Record<string, GeoJsonFeatureCollection>,
+  docCache?: Map<
+    string,
+    { features?: GeoJsonFeatureCollection; doc?: ScrDocument; prevFeatures?: GeoJsonFeatureCollection; prevDoc?: ScrDocument }
+  >,
+): Promise<{ text: string }> {
+  const cacheKey = `${task.id}|${arm.name}|${budget}`;
+  const hit = cache?.get(cacheKey);
+  if (hit) return hit;
+
+  const input = await adapterInputFor(task, budget, carto, log, fixtures, docCache);
+  let out: AdapterArmResult;
+  try {
+    out = await arm.prepare(input);
+  } catch (err) {
+    throw new Error(
+      `adapter ${arm.name} threw preparing ${task.id} at budget ${budget}: ` +
+      `${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
+  if (typeof out?.text !== 'string' || out.text.length === 0) {
+    // Refused, not archived as empty. An empty arm would be scored as a
+    // refusal and fail every pass rule quietly, which is how a broken
+    // competitor ends up in the headline table looking uniformly bad.
+    throw new Error(
+      `adapter ${arm.name} returned no context for ${task.id} at budget ${budget}; ` +
+      'return data or a no-data sentence the subject can read',
+    );
+  }
+  const built = { text: out.text };
   cache?.set(cacheKey, built);
   return built;
 }

@@ -364,12 +364,16 @@ describe('omissions name the layer they dropped', () => {
 
   it('never files an omission under the generic "feature"', () => {
     // The regression: one record, 3966 count, layer 'feature'.
+    // Measured on supercarto 0.4.11: this fixture takes ~30s per compile
+    // (per-removal articulation recompute in the 0.4.11 budgeter), so the
+    // default 60s ceiling two compiles shared is not enough. Raise with the
+    // measurement, drop when the batched cost returns.
     for (const ingest of [undefined, { layerKey: 'layer' }]) {
       for (const layer of compile(ingest).graph.omitted) {
         expect(layer.layer).not.toBe('feature');
       }
     }
-  });
+  }, 240_000);
 
   it('names the source layer when the fixture declares one', () => {
     const layers = compile({ layerKey: 'layer' }).graph.omitted.map((o) => o.layer);

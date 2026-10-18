@@ -19,6 +19,7 @@ import { completedCalls } from '../src/bench/cli-run.js';
 import { FREEMODELS } from '../src/bench/driver/opencode.js';
 import { OpencodeDriver } from '../src/bench/driver/opencode.js';
 import { buildTasks, FREE_LADDER_AREAS } from '../src/bench/tasks.js';
+import { loadAdapters } from '../src/bench/adapter.js';
 import { runMetadata } from '../src/bench/metadata.js';
 import { archiveName, ResponseArchive } from '../src/bench/archive.js';
 import type { GeoJsonFeatureCollection } from 'supercarto';
@@ -63,6 +64,22 @@ if (Object.keys(fixtures).length === 0) {
 
 const only = arg('--only');
 /**
+ * `--adapter <file>`, repeatable: register rival map tools as extra arms.
+ *
+ * A rival differs by context-building code, not by model. Loaded before the
+ * ladder starts, so a malformed module fails in seconds rather than after a
+ * metered call budget.
+ */
+const adapterPaths: string[] = [];
+for (let i = 0; i < process.argv.length - 1; i++) {
+  if (process.argv[i] === '--adapter' && process.argv[i + 1]) adapterPaths.push(process.argv[i + 1]!);
+}
+const adapterArms = adapterPaths.length > 0 ? await loadAdapters(adapterPaths.map((p) => resolve(p))) : [];
+if (adapterArms.length > 0) {
+  console.log(`adapters: ${adapterArms.map((a) => a.name).join(', ')}`);
+  console.log('  rival arms run on the same tasks, models and scoring as the built-ins');
+}
+/**
  * Every `--model`, not just the first.
  *
  * `arg` returns one value, so `--model a --model b --model c` silently ran only
@@ -101,6 +118,13 @@ const dry = process.argv.includes('--dry');
  * could previously never reach. Old tracks byte-identical by default.
  */
 const agentic = process.argv.includes('--agentic');
+/**
+ * `--sweep-adapters`: adapter arms run the full budget sweep like the
+ * supercarto arm, instead of one pass at the largest budget. A rival tool
+ * that fits its own per-budget output claims the same crossover rows; live
+ * (fixture-less) runs pay a fetch per budget per task for that.
+ */
+const sweepAdapters = process.argv.includes('--sweep-adapters');
 
 const models = modelFlags.length > 0 ? modelFlags : [...FREEMODELS];
 /**
@@ -111,7 +135,9 @@ const models = modelFlags.length > 0 ? modelFlags : [...FREEMODELS];
  * the one task that tests the protocol rather than the map could never be run.
  */
 const allTasks = buildTasks(FREE_LADDER_AREAS).map((t) => t.id);
-const totalCalls = allTasks.length * 3 * seeds * models.length;
+// Adapters join the arm count: calls scale with arms, not just the 3 built-ins.
+const ARM_COUNT = 3 + adapterArms.length;
+const totalCalls = allTasks.length * ARM_COUNT * seeds * models.length;
 
 console.log(`\nmodels: ${models.length}`);
 console.log(`seeds: ${seeds}`);
@@ -183,6 +209,8 @@ const results = await runLadder({
   stopOnRateLimit: true,
   fixtures,
   concurrency,
+  adapters: adapterArms.length > 0 ? adapterArms : undefined,
+  sweepAdapters,
   makeClient: (m: string) =>
     agentic
       ? new OpencodeDriver({

@@ -40,6 +40,52 @@ Rules: `--budget` caps calls; resume reuses rows by key and refuses
 prompt-hash mismatches (fresh `--out` after prompt changes); free-model runs
 need the `opencode` CLI with a model that serves.
 
+## Run a rival tool
+
+Adapter arms are how another map tool or representation joins the
+comparison — same tasks, same model, same prompt template, same pass rules,
+same archive. The adapter builds its own context: it gets the raw features
+and the task, and never supercarto's compiled output, so the contest is
+between representations, not between summarisers.
+
+```js
+// my-tool.mjs — export a default { name, prepare } module
+export default {
+  name: 'my-tool',
+  description: 'My map representation',
+  async prepare({ task, budget, features }) {
+    return { text: renderMyTool(features, budget) }; // what the model sees
+  },
+};
+```
+
+```bash
+npx tsx scripts/run-free-ladder.ts --adapter ./my-tool.mjs \
+  --only "synthetic-pacific/omission-awareness" --seeds 3
+```
+
+`--adapter` is repeatable (more than one rival per run), and adapter arms
+appear in the report, on the leaderboard, and in the certificate as their
+own column. Default is one pass at the largest budget; add
+`--sweep-adapters` to run the full budget sweep a rival's own fitting
+claims to need. A malformed module fails before the first model call.
+
+## Certificate and leaderboard
+
+```bash
+# scoreC from every archived run: integers like "9/9 vs 4/9 vs 0/9",
+# with sha256 provenance and a re-derive recipe, no model calls needed
+npx tsx scripts/certificate.ts bench-results/*.report.json
+
+# aggregate every archived run into the per-(model, arm) table
+npx tsx scripts/leaderboard.ts
+```
+
+Both write into `bench-results/` (`certificate.md`/`.json`,
+`leaderboard.md`/`.json`) and are regenerated with one command each; the
+committed files are mirrors of the committed archives. Cite the
+certificate's one-line score, verify against the archives by re-running it.
+
 ## Layout
 
 - `src/bench/` — task builders, runner, scorers, rescore, drivers, archiving

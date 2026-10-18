@@ -26,6 +26,7 @@ import { scoreNames, distanceCorrect, extractDistanceM, isRefusal, connectedComp
 import type { ScoredTask } from './score.js';
 import type { ModelRequest } from './types.js';
 import type { TaskArea } from './tasks.js';
+import type { AdapterArm } from './adapter.js';
 
 /** Floor to ceiling. Names verified against arena's picker. */
 export const LADDER = [
@@ -85,6 +86,13 @@ export interface LadderOptions {
    * area is the case that hit this.
    */
   areas?: readonly TaskArea[];
+  /**
+   * Adapter arms: rival map tools registered through `--adapter`.
+   *
+   * Forwarded to `runBenchmark` for every model, so a rival arm is subject to
+   * the same models, prompts and archive as the built-ins.
+   */
+  adapters?: readonly AdapterArm[];
   /**
    * Model calls in flight at once. Default 1.
    *
@@ -185,6 +193,7 @@ export async function runLadder(opts: LadderOptions = {}): Promise<LadderResult[
       ...(opts.fixtures ? { fixtures: opts.fixtures } : {}),
       ...(opts.only ? { only: opts.only } : {}),
       ...(opts.carto ? { carto: opts.carto } : {}),
+      ...(opts.adapters ? { adapters: opts.adapters } : {}),
       onProgress: (m) => log(`  ${model}: ${m}`),
     });
 

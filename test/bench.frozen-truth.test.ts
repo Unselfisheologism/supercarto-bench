@@ -93,17 +93,21 @@ describe('ground truth is frozen', () => {
       // assertion that makes the rest of the suite's pass meaningful.
       expect(Object.keys(truth).length, `${task.kind} truth was empty`).toBeGreaterThan(0);
     }
-  });
+  }, 480_000);
 
   it('is identical across repeated calls, so a re-score is a re-score', async () => {
     const task = tasks.find((t) => t.kind === 'omission')!;
 
+    // Measured on supercarto 0.4.11: one compile of this fixture at budget 1024
+    // takes ~30s (the 0.4.11 budgeter recomputes articulation cuts per removal,
+    // which 0.4.9 batched). The timeouts below accommodate two runs; when a
+    // release brings the batched cost back, these numbers should shrink with it.
     const a = await groundTruth(task, deadRouter, offlineCart, fixtures, 'supercarto', 1024);
     const b = await groundTruth(task, deadRouter, offlineCart, fixtures, 'supercarto', 1024);
 
     expect(Object.keys(a).length).toBeGreaterThan(0);
     expect(JSON.stringify(a)).toBe(JSON.stringify(b));
-  });
+  }, 240_000);
 
   it('builds omission truth from the fixture, not a live map', async () => {
     const truth = await truthOnce('omission');

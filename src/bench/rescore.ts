@@ -291,7 +291,7 @@ function scoreAgainst(
 /** Current prompt for a task, or undefined when it cannot be rebuilt offline. */
 function promptFor(
   task: { id: string; question: string },
-  representation: 'supercarto' | 'geojson' | 'none',
+  representation: string,
   _truth: GroundTruth,
   _carto?: SuperCarto,
   _fixtures?: Record<string, GeoJsonFeatureCollection>,

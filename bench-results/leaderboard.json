@@ -1,0 +1,108 @@
+{
+  "generatedAt": "2026-10-18T02:35:42.680Z",
+  "entries": [
+    {
+      "model": "opencode/step-5-preview-free",
+      "arm": "supercarto",
+      "solved": 19,
+      "rows": 21,
+      "percent": "90%",
+      "medianTokens": 930,
+      "runs": [
+        "diff-step5.report.json",
+        "expansion-step5-area.report.json",
+        "expansion-step5-containment.report.json",
+        "heat-step5.report.json",
+        "synthetic-step5.report.json"
+      ]
+    },
+    {
+      "model": "opencode/muse-spark-1.3-contributor-free",
+      "arm": "supercarto",
+      "solved": 17,
+      "rows": 23,
+      "percent": "74%",
+      "medianTokens": 930,
+      "runs": [
+        "diff-muse.report.json",
+        "expansion-muse-area.report.json",
+        "expansion-muse-containment-agentic.report.json",
+        "expansion-muse-containment.report.json",
+        "heat-muse.report.json",
+        "synthetic-muse.report.json"
+      ]
+    },
+    {
+      "model": "opencode/step-5-preview-free",
+      "arm": "geojson",
+      "solved": 9,
+      "rows": 21,
+      "percent": "43%",
+      "medianTokens": 172674,
+      "runs": [
+        "diff-step5.report.json",
+        "expansion-step5-area.report.json",
+        "expansion-step5-containment.report.json",
+        "heat-step5.report.json",
+        "synthetic-step5.report.json"
+      ]
+    },
+    {
+      "model": "opencode/muse-spark-1.3-contributor-free",
+      "arm": "geojson",
+      "solved": 5,
+      "rows": 20,
+      "percent": "25%",
+      "medianTokens": 172674,
+      "runs": [
+        "diff-muse.report.json",
+        "expansion-muse-area.report.json",
+        "expansion-muse-containment-agentic.report.json",
+        "expansion-muse-containment.report.json",
+        "heat-muse.report.json",
+        "synthetic-muse.report.json"
+      ]
+    },
+    {
+      "model": "opencode/muse-spark-1.3-contributor-free",
+      "arm": "none",
+      "solved": 0,
+      "rows": 24,
+      "percent": "0%",
+      "medianTokens": 189,
+      "runs": [
+        "diff-muse.report.json",
+        "expansion-muse-area.report.json",
+        "expansion-muse-containment-agentic.report.json",
+        "expansion-muse-containment.report.json",
+        "heat-muse.report.json",
+        "synthetic-muse.report.json"
+      ]
+    },
+    {
+      "model": "opencode/step-5-preview-free",
+      "arm": "none",
+      "solved": 0,
+      "rows": 20,
+      "percent": "0%",
+      "medianTokens": 189,
+      "runs": [
+        "diff-step5.report.json",
+        "expansion-step5-area.report.json",
+        "expansion-step5-containment.report.json",
+        "heat-step5.report.json",
+        "synthetic-step5.report.json"
+      ]
+    }
+  ],
+  "scorec": {
+    "geojson": "14/41",
+    "none": "0/44",
+    "supercarto": "36/44"
+  },
+  "notes": [
+    "solve rate counts scorable rows only; unscored rows (errors, voided refusals) are excluded from numerators and denominators and stay visible in the per-report files.",
+    "token medians are chars/4 estimates unless a run recorded provider usage.",
+    "arms registered by adapters (`--adapter`) appear as their own arm, same tasks, same pass rules."
+  ]
+}

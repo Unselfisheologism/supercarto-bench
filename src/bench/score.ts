@@ -39,7 +39,14 @@ export interface ScoredTask {
  * because a model refused rather than because it reasoned well, and refusal is
  * cheap. It is also the honest floor: a human with no map cannot answer.
  */
-export type Representation = 'supercarto' | 'geojson' | 'none';
+/**
+ * Map-data representation an arm is scored under.
+ *
+ * The three built-in arms are the comparison; anything else is an adapter arm,
+ * the `--adapter` path a rival framework runs through. `(string & {})` keeps
+ * the literal names autocompletable while letting an adapter register its own.
+ */
+export type Representation = 'supercarto' | 'geojson' | 'none' | (string & {});
 
 export interface RunOutcome {
   tasks: ScoredTask[];

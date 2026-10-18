@@ -3,6 +3,7 @@
  */
 
 import type { SpatialGraph } from 'supercarto';
+import type { Representation } from './score.js';
 
 export interface LatLon {
   lat: number;
@@ -31,7 +32,7 @@ export interface ModelRequest {
 /** The configuration a single model call was made under. */
 export interface RunIdentity {
   taskId: string;
-  representation: 'supercarto' | 'geojson' | 'none';
+  representation: Representation;
   budget: number;
   seed: number;
 }
