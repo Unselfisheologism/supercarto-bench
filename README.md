@@ -97,6 +97,20 @@ Both write into `bench-results/` (`certificate.md`/`.json`,
 committed files are mirrors of the committed archives. Cite the
 certificate's one-line score, verify against the archives by re-running it.
 
+## Keep it alive
+
+A leaderboard is a screenshot the day nobody runs it. One free model, one
+real-city area, every arm, one seed, once a week:
+
+```bash
+bash scripts/weekly.sh
+```
+
+It runs the ladder (`glm-5.3-flash-free`, `sf-cbd`: connectivity, nearest,
+feasibility), regenerates both mirrors, commits the raw archives and pushes.
+A model that stops serving is recorded in `driver/opencode.ts`, not swapped
+out — the list is an audit, not a population.
+
 ## Layout
 
 - `src/bench/` — task builders, runner, scorers, rescore, drivers, archiving
