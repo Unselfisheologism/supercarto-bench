@@ -1,5 +1,20 @@
 # Changelog (supercarto-bench)
 
+## Unreleased — tested against supercarto 0.5.3
+
+- The harness now runs the released 0.5.x compiler (`^0.5.3`, was `^0.4.11`).
+- Why a full re-run is not yet mandatory: a zero-model-call diff of every archived
+  supercarto-arm context rebuilt with 0.5.3 (`scripts/recompile-diff.ts`, new) shows
+  only expected drift (sun/time header) plus compiler-level graph changes — node
+  IDs renumbered, edge directions canonicalized. Scoring is expressed in source
+  data, not map IDs, so none of it touches a pass condition.
+- Confirmation on the compiler-changed tasks (synthetic-pacific + sf-cbd, glm-5.3-flash-free,
+  1 seed): supercarto acc 0.8 / completion 1.0 / 770 median context tokens vs raw
+  GeoJSON 0.333 acc / 0.6 completion / 69,610 median tokens. The compiled graph
+  still wins the ladder on 0.5.3. The archived certificate stays 0.4.x-generation
+  until a full-seed re-run replaces it.
+
+
 ## Unreleased — route demoted to feasibility, ladder measures the promise
 
 - The `route`/`turns` task kinds are off the ladder. Two runs showed the

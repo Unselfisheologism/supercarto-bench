@@ -12,7 +12,7 @@
     "leaderboard": "tsx scripts/leaderboard.ts"
   },
   "dependencies": {
-    "supercarto": "^0.4.11"
+    "supercarto": "^0.5.3"
   },
   "devDependencies": {
     "@types/node": "^22.19.1",
